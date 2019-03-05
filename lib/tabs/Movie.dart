@@ -25,17 +25,21 @@ class Movie {
     movie.count = jsonData['count'];
     movie.start = jsonData['start'];
     movie.total = jsonData['total'];
-
-    List<Subject> subjectList = new List<Subject>();
+    List<Subject> subjectList = [];
     List list = jsonData['subjects'];
     Subject subject = null;
     Map item = null;
     for(var i = 0 ; i < list.length ; i++) {
       item = list[i];
       List<Cast> castList = _getCastList(item['casts']);
+      Map<String, dynamic> ratingMap = new Map();
+      ratingMap['max'] = item['rating']['max'];
+      ratingMap['average'] = item['rating']['max'];
+      ratingMap['stars'] = item['rating']['max'];
+      ratingMap['min'] = item['rating']['max'];
       subject = new Subject(
           item['title'],
-          item['rating'],
+          ratingMap,
           item['genres'],
           castList,
           item['year'],

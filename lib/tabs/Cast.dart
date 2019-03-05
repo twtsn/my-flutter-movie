@@ -6,11 +6,11 @@ class Cast {
   "medium": ""
   };
   final String name;
-  final int id;
+  final String id;
   Cast(
-    this.id,
-    this.name,
     this.alt,
-    this.avatars
+    this.avatars,
+    this.name,
+    this.id
 );
 }

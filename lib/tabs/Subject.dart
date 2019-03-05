@@ -1,15 +1,15 @@
 import 'package:flutter_app/tabs/Cast.dart';
 class Subject {
   final String title;
-  Map rating = {
+  Map<String, dynamic> rating = {
     "max": 0,
     "average": 0,
-    "stars": 0,
+    "stars": "0",
     "min": 0
   };
-  final List<String> genres;
+  final List<dynamic> genres;
   final List<Cast> casts;
-  final int year;
+  final String year;
   Map images = {
     "small": '',
     "large": '',
