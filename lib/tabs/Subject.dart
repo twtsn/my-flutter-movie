@@ -1,4 +1,3 @@
-import 'package:flutter_app/tabs/Cast.dart';
 class Subject {
   final String title;
   Map<String, dynamic> rating = {
@@ -8,12 +7,13 @@ class Subject {
     "min": 0
   };
   final List<dynamic> genres;
-  final List<Cast> casts;
+  final List<String> casts;
   final String year;
   Map images = {
     "small": '',
     "large": '',
     "medium": ''
   };
-  Subject(this.title, this.rating, this.genres, this.casts, this.year, this.images);
+  final List<String> directors;
+  Subject(this.title, this.rating, this.genres, this.casts, this.year, this.images, this.directors);
 }

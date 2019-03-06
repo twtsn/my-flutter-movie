@@ -1,24 +1,33 @@
 import 'package:flutter_app/tabs/Subject.dart';
-import 'package:flutter_app/tabs/Cast.dart';
 class Movie {
    int count;
    int start;
    int total;
    List<Subject> subjectList;
 
-   static List<Cast> _getCastList (list) {
-     List<Cast> castList = new List<Cast>();
-     Map item = null;
+   static List<String> _getCastList (list) {
+     List<String> castList = [];
      for(var j = 0 ; j < list.length ; j++) {
-       item = list[j];
-       castList.add(new Cast (
-           item['alt'],
-           item['avatars'],
-           item['name'],
-           item['id']
-       ));
+       castList.add(list[j]['name']);
      }
      return castList;
+   }
+   static Map<String, dynamic> _getRating (item){
+     Map<String, dynamic> ratingMap = new Map();
+     ratingMap['max'] = item['rating']['max'];
+     ratingMap['average'] = item['rating']['average'];
+     ratingMap['stars'] = item['rating']['stars'];
+     ratingMap['min'] = item['rating']['min'];
+     ratingMap['min'] = item['rating']['min'];
+     ratingMap['min'] = item['rating']['min'];
+     return ratingMap;
+   }
+   static List<String> _getDirectors (list) {
+     List<String> directors = [];
+     for(int i = 0 ; i < list.length ; i++){
+       directors.add(list[i]['name']);
+     }
+     return directors;
    }
   static Movie getData (Map jsonData) {
     Movie movie = new Movie();
@@ -31,19 +40,18 @@ class Movie {
     Map item = null;
     for(var i = 0 ; i < list.length ; i++) {
       item = list[i];
-      List<Cast> castList = _getCastList(item['casts']);
-      Map<String, dynamic> ratingMap = new Map();
-      ratingMap['max'] = item['rating']['max'];
-      ratingMap['average'] = item['rating']['max'];
-      ratingMap['stars'] = item['rating']['max'];
-      ratingMap['min'] = item['rating']['max'];
+      List<String> castList = _getCastList(item['casts']);
+      Map<String, dynamic> ratingMap = _getRating(item);
+      List<String> directors = _getDirectors(item['directors']);
       subject = new Subject(
           item['title'],
           ratingMap,
           item['genres'],
           castList,
           item['year'],
-          item['images']);
+          item['images'],
+          directors
+      );
       subjectList.add(subject);
     }
     movie.subjectList = subjectList;

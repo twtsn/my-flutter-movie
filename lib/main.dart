@@ -31,13 +31,13 @@ class _MyHomeState extends State<MyHome> with SingleTickerProviderStateMixin {
     _tabController = new TabController(vsync: this, length: 3);
   }
 
-  String dropdownValue = '杭州';
+  String city = '杭州';
   DropdownButton getDropdownButton () {
    return new DropdownButton<String>(
-          value: dropdownValue,
+          value: city,
           onChanged: (String newValue) {
             setState(() {
-              dropdownValue = newValue;
+              city = newValue;
             });
           },
           items: <String>['杭州', '上海', '北京']
@@ -99,7 +99,7 @@ class _MyHomeState extends State<MyHome> with SingleTickerProviderStateMixin {
       body: new TabBarView(
         controller: _tabController,
         children: <Widget>[
-          new OnlineMovieList(),
+          new OnlineMovieList(city: city, query: ''),
           new Center(child: new Text('船')),
         ],
       ),

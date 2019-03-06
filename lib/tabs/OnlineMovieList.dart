@@ -4,6 +4,10 @@ import 'dart:io';
 import 'package:flutter_app/tabs/Movie.dart';
 import 'package:flutter_app/tabs/Subject.dart';
 class OnlineMovieList extends StatefulWidget {
+  OnlineMovieList({Key key, this.city, this.query, this.changeData}):super(key: key);
+  String city;
+  String query;
+  final Function() changeData;
   @override
   _OnlineMovieListState createState () {
     return new _OnlineMovieListState();
@@ -11,10 +15,15 @@ class OnlineMovieList extends StatefulWidget {
 }
 class _OnlineMovieListState extends State<OnlineMovieList> {
   Movie moviePage;
+  String city = '';
+  String query  = '';
 
   @override
   void initState() {
     super.initState();
+    city = widget.city;
+    query = widget.query;
+    print(widget.city);
     _getOnlineMovieList();
   }
   @override
@@ -53,7 +62,8 @@ class _OnlineMovieListState extends State<OnlineMovieList> {
   }
    _getOnlineMovieList () async {
     var http = new HttpClient();
-    const url = 'https://api.douban.com/v2/movie/in_theaters?city=杭州&start=0&count=10';
+    print('city ===============' + city);
+    String url = 'https://api.douban.com/v2/movie/in_theaters?city='+ city +'&start=0&count=10';
     var request = await http.getUrl(Uri.parse(url));
     var response = await request.close();
     if (response.statusCode == HttpStatus.ok){
@@ -64,8 +74,40 @@ class _OnlineMovieListState extends State<OnlineMovieList> {
       });
     }
   }
+  Stack _getTitleAndAverage (subject) {
+    double average = subject.rating['average'];
+    return Stack(
+        children: <Widget>[
+          Text(
+            subject.title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18.0,
+            ),
+          ),
+          Align(
+              alignment: FractionalOffset.bottomRight,
+              child: Padding(
+                padding: EdgeInsets.only(
+                    right: 10.0,
+                    top: 5.0
+                ),
+                child: Text(
+                    average.toString(),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: average >= 8 ? Colors.red : Colors.black
+                    )
+                ),
+              )
+          )
+        ]
+    );
+  }
   Widget _getListItem (subject) {
-    String average = subject.rating['average'].toString();
+    String typeStr = subject.genres.join('•');
+    String directors = subject.directors.join('•');
+    String casts = subject.casts.join('•');
     return Card(
       child: Row(
           children: <Widget>[
@@ -82,38 +124,32 @@ class _OnlineMovieListState extends State<OnlineMovieList> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(
-                          subject.title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20.0,
-                          ),
-                        ),
-                        Text('评分：' + average),
-                        Text('类型：'),
-                        Text('导演：'),
-                        Text('主演：')
+                        _getTitleAndAverage(subject),
+                        Text('年份：' + subject.year),
+                        Text('类型：' + typeStr),
+                        Text('导演：' + directors),
+                        Text('主演：' + casts),
                       ],
                     ),
                   )
                 ) /// 此组件会填满Row在主轴方向的剩余空间，撑开Row
             ),
-            Container( /// 此组件在主轴方向占据48.0逻辑像素
-              width: 100.0,
-              child: new Padding(
-                padding: EdgeInsets.only(
-                  right: 10.0,
-                ),
-                child: new Align(
-                  alignment: FractionalOffset.centerRight,
-                  child: OutlineButton(
-                      textTheme: ButtonTextTheme.primary,
-                      textColor: Colors.blue,//文字的颜色
-                      child: Text("购买")
-                  ),
-                ),
-              )
-            ),
+//            Container( /// 此组件在主轴方向占据48.0逻辑像素
+//              width: 100.0,
+//              child: new Padding(
+//                padding: EdgeInsets.only(
+//                  right: 10.0,
+//                ),
+//                child: new Align(
+//                  alignment: FractionalOffset.centerRight,
+//                  child: OutlineButton(
+//                      textTheme: ButtonTextTheme.primary,
+//                      textColor: Colors.blue,//文字的颜色
+//                      child: Text("购买")
+//                  ),
+//                ),
+//              )
+//            ),
           ]
       ),
     );
