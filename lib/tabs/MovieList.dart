@@ -3,41 +3,84 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_app/tabs/Movie.dart';
 import 'package:flutter_app/tabs/Subject.dart';
-class OnlineMovieList extends StatefulWidget {
-  OnlineMovieList({Key key, this.city, this.query, this.changeData}):super(key: key);
+import 'package:flutter_app/common/MyEvent.dart';
+class MovieList extends StatefulWidget {
+  MovieList({Key key, this.url, this.city, this.query, this.changeData}):super(key: key);
+  String url;
+  int start = 0;
+  int count = 10;
   String city;
   String query;
-  final Function() changeData;
+  final Function(int total) changeData;
   @override
-  _OnlineMovieListState createState () {
-    return new _OnlineMovieListState();
+  _MovieListState createState () {
+    return new _MovieListState();
   }
 }
-class _OnlineMovieListState extends State<OnlineMovieList> {
-  Movie moviePage;
-  String city = '';
-  String query  = '';
-
+class _MovieListState extends State<MovieList> {
+  ScrollController _scrollController = new ScrollController();
+  Movie moviePage = new Movie();
+  Future<Movie> future;
   @override
   void initState() {
     super.initState();
-    city = widget.city;
-    query = widget.query;
-    print(widget.city);
-    _getOnlineMovieList();
+    future = _getOnlineMovieList();
+    print('init change');
+    eventBus.on<MyEvent>().listen((MyEvent data) =>
+        _onDataChange(data)
+    );
+//    _scrollController.addListener((){
+//      print(_scrollController.position.pixels);
+//    });
+  }
+  void _onDataChange (data) {
+    setState((){
+      widget.city = data.city;
+      widget.query = data.query;
+       future = _getOnlineMovieList(); //刷新数据,重新设置future就行了
+    });
   }
   @override
   Widget build(BuildContext context) {
-    List<Widget> listView = _getList();
     return new Center(
-      child: new ListView(
-        children: listView
+      child: FutureBuilder(
+        builder: _buildFuture,
+        future: future
       ),
     );
   }
-  List<Widget> _getList () {
-    List<Widget> list = [];
-    Widget newItem = null;
+  //利用FutureBuilder来实现懒加载，并可以监听加载过程的状态
+  Widget _buildFuture(BuildContext context, AsyncSnapshot<Movie> snapshot) {
+    switch (snapshot.connectionState) {
+      case ConnectionState.none:
+        print('还没有开始网络请求');
+        return Text('还没有开始网络请求');
+      case ConnectionState.active:
+        print('active');
+        return Text('ConnectionState.active');
+      case ConnectionState.waiting:
+        print('waiting');
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      case ConnectionState.done:
+        print('done');
+        if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+        return _createListView(context, snapshot);
+      default:
+        return null;
+    }
+  }
+  Widget _createListView(BuildContext context,  AsyncSnapshot<Movie> snapshot) {
+    moviePage = snapshot.data;
+    List<Card> listView = _getList();
+    return ListView(
+        children: listView
+    );
+  }
+  List<Card> _getList () {
+    List<Card> list = [];
+    Card newItem = null;
     List<Subject> subjectList = moviePage.subjectList;
     for(var i = 0 ; i < subjectList.length ; i++) {
       Subject subject = subjectList[i];
@@ -60,22 +103,24 @@ class _OnlineMovieListState extends State<OnlineMovieList> {
         )
     );
   }
-   _getOnlineMovieList () async {
+   Future<Movie>_getOnlineMovieList () async {
     var http = new HttpClient();
-    print('city ===============' + city);
-    String url = 'https://api.douban.com/v2/movie/in_theaters?city='+ city +'&start=0&count=10';
+    print('请求参数 url ===============' + widget.url);
+    print('请求参数 city ===============' + widget.city);
+    String url = widget.url + '?city='+ widget.city +'&start='+  widget.start.toString() +'&count=' + widget.count.toString();
     var request = await http.getUrl(Uri.parse(url));
     var response = await request.close();
     if (response.statusCode == HttpStatus.ok){
       var jsonData = await response.transform(utf8.decoder).join();
-      setState(() {
-        var m = Movie.getData(json.decode(jsonData));
-        moviePage = m;
-      });
+      Movie movie = Movie.getData(json.decode(jsonData));
+      widget.changeData(movie.total);
+      return movie;
+    } else {
+      return null;
     }
   }
-  Stack _getTitleAndAverage (subject) {
-    double average = subject.rating['average'];
+  Stack _getTitleAndAverage (Subject subject) {
+    double average = double.parse(subject.rating['average'].toString());
     return Stack(
         children: <Widget>[
           Text(
@@ -104,7 +149,7 @@ class _OnlineMovieListState extends State<OnlineMovieList> {
         ]
     );
   }
-  Widget _getListItem (subject) {
+  Card _getListItem (subject) {
     String typeStr = subject.genres.join('•');
     String directors = subject.directors.join('•');
     String casts = subject.casts.join('•');

@@ -3,7 +3,7 @@ class Movie {
    int count;
    int start;
    int total;
-   List<Subject> subjectList;
+   List<Subject> subjectList = [];
 
    static List<String> _getCastList (list) {
      List<String> castList = [];
@@ -17,8 +17,6 @@ class Movie {
      ratingMap['max'] = item['rating']['max'];
      ratingMap['average'] = item['rating']['average'];
      ratingMap['stars'] = item['rating']['stars'];
-     ratingMap['min'] = item['rating']['min'];
-     ratingMap['min'] = item['rating']['min'];
      ratingMap['min'] = item['rating']['min'];
      return ratingMap;
    }
